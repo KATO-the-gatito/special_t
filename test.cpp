@@ -10,6 +10,7 @@ int main() {
     special_t res(10, false);
     res.setspec(num1 - num2); 
 
+    
     std::cout << res.bin() << "\n";
 
     return 0;
