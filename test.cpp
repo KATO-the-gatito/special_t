@@ -8,10 +8,9 @@ int main() {
     std::cout << "num1: " << num1.bin() << "\n";
     std::cout << "num2: " << num2.bin() << "\n";
     special_t res(10, false);
-    res.setspec(num1 - num2); 
+    res.setspec(num1 + num2); 
 
-    
-    std::cout << res.bin() << "\n";
+    std::cout << "res: " << res.bin() << "\n";
 
     return 0;
 }
