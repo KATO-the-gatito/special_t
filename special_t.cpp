@@ -5,7 +5,7 @@ std::string special_t::bin(bool sep){
     for (int i = 0; i < size; i++) {
         if (sep) str += '\'';
         for (int j = 0; j < BBITS; j++) {
-            str += (((byte)(bytes_array[i] & (1 << j)) != 0) + (byte)'0');
+            str += (((byte)(bytes_array[i] & (1 << j)) != 0) + '0');
             //std::cout << ((byte)(bytes_array[i] & (1 << j)) != 0) << " " << str << '\n';
         }
     }
@@ -14,21 +14,82 @@ std::string special_t::bin(bool sep){
     return str;
 }
 
-void special_t::setspec(special_t spec) {
+special_t& special_t::setspec(special_t spec) {
     Min_Max min_max = size < spec.size ? Min_Max<special_t>{*this, spec} : Min_Max<special_t>{spec, *this};
     clear();
 
     for (int i = 0; i < min_max.min.size; i++) {
         bytes_array[i] = spec.bytes_array[i];
     }    
+    return *this;
 }
 
-void special_t::resize(int new_size){
+special_t& special_t::resize(int new_size){
     byte* new_bytes_array = new byte[new_size];
     for (int i = 0; i < new_size; i++) {
         new_bytes_array[i] = bytes_array[i];
     }
     bytes_array = new_bytes_array;
+    return *this;
+}
+
+special_t& special_t::invert(){
+    for (int i = 0; i < size; i++) {
+        bytes_array[i] = ~bytes_array[i];
+    }
+    return *this;
+}
+
+special_t& special_t::negate() {
+    this->invert();
+    special_t tmp_spec(size, false);
+    tmp_spec.setval(1);
+    setspec(do_action(*this, tmp_spec, '+'));
+    return *this;
+}
+
+special_t& special_t::add_bytes(byte dir, int count) {
+    int new_size = size + count;
+    byte* tmp_bytes_array = new byte[new_size];
+    clear_buffer(tmp_bytes_array, new_size);
+    int glob_i = 0;
+
+    switch (dir)
+    {
+    case LEFT:
+        glob_i = 0;
+        break;
+    case RIGHT:
+        glob_i = count;
+        break;
+    default:
+        perror("wrong direction for adding bytes!");
+        break;
+    }
+    
+    for (int i = 0; i < size; i++, glob_i++) {
+        tmp_bytes_array[glob_i] = bytes_array[i];
+    }
+    bytes_array = tmp_bytes_array;
+    size = new_size;
+    return *this;
+}
+
+special_t& special_t::shift(byte dir, int count) {
+    // in progress...
+    return *this;
+}
+
+//--------------------------------------------------------------------------------------------------------
+
+void clear_zeros(std::string& str){
+    std::string tmp_str = str;
+    str.clear();
+    bool flag = false;
+    for (char& ch : tmp_str){
+        if (ch != '0' && ch != '\'' && !flag) flag = true;
+        if (flag) str += ch;
+    }
 }
 
 special_t do_action(special_t first, special_t second, char action) {
@@ -40,12 +101,7 @@ special_t do_action(special_t first, special_t second, char action) {
     {
     case '-':
     {
-        for (int i = 0; i < spec2.size; i++) {
-            spec2.bytes_array[i] = ~spec2.bytes_array[i];
-        }
-        special_t tmp_spec(min_max.max.size, false);
-        tmp_spec.setval(1);
-        spec2.setspec(do_action(spec2, tmp_spec, '+'));
+        spec2.negate();
         spec2.resize(min_max.max.size + 1);
     }
         // fall through <----------!
@@ -59,6 +115,19 @@ special_t do_action(special_t first, special_t second, char action) {
             result.bytes_array[i] = (byte)tmp;
             rem = (tmp >> 8);
         }  
+    }
+        break;
+    case '*':
+    {
+        special_t A(min_max.max.size * 2 + 1, false);
+        special_t S(min_max.max.size * 2 + 1, false);
+        special_t P(min_max.max.size * 2 + 1, false);
+        A.setspec(spec1).add_bytes(RIGHT, min_max.max.size + 1);
+        S.setspec(spec1.negate()).add_bytes(RIGHT, min_max.max.size + 1);
+        P.setspec(spec2).add_bytes(LEFT, min_max.max.size).add_bytes(RIGHT, 1);
+
+        // in progress...
+
     }
         break;
     default:

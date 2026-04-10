@@ -3,8 +3,11 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 #define BBITS 8
+#define LEFT 0
+#define RIGHT 1
 
 typedef unsigned char byte;
 
@@ -13,6 +16,13 @@ struct Min_Max
 {
     T min, max;
 };
+
+template<typename T>
+void clear_buffer(T* buffer, int len){
+    for (int i = 0; i < len; i++){
+        buffer[i] = 0;
+    }
+}
 
 class special_t
 {  
@@ -40,8 +50,9 @@ public:
         }
     }
     std::string bin(bool sep = true);
+    //std::string dec(bool sep = true);
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    void setval(T val) {
+    special_t& setval(T val) {
         clear();
         int val_j = 0;
         for (int i = 0; i < sizeof(T); i++) {
@@ -50,9 +61,14 @@ public:
                     bytes_array[i] = bytes_array[i] | (1 << j); 
             }
         }
+        return *this;
     }
-    void setspec(special_t);
-    void resize(int new_size);
+    special_t& setspec(special_t);
+    special_t& resize(int new_size);
+    special_t& invert();
+    special_t& negate();
+    special_t& add_bytes(byte dir, int count);
+    special_t& shift(byte dir, int count);
     
 
 //private:
@@ -61,6 +77,7 @@ public:
     bool is_signed;
 };
 
+void clear_zeros(std::string& str);
 special_t do_action(special_t first, special_t second, char action);
 
 special_t operator+ (special_t first, special_t second);
