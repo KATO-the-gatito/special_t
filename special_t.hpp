@@ -82,9 +82,12 @@ special_t do_action(special_t first, special_t second, char action);
 
 special_t operator+ (special_t first, special_t second);
 special_t operator- (special_t first, special_t second);
-special_t& operator+= (special_t& first, special_t second);
-special_t& operator-= (special_t& first, special_t second);
+special_t operator* (special_t first, special_t second);
 special_t operator<< (special_t spec, int count);
 special_t operator>> (special_t spec, int count);
+
+special_t& operator+= (special_t& first, special_t second);
+special_t& operator-= (special_t& first, special_t second);
+special_t& operator*= (special_t& first, special_t second);
 special_t& operator<<= (special_t& spec, int count);
 special_t& operator>>= (special_t& spec, int count);

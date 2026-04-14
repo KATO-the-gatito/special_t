@@ -142,19 +142,23 @@ void clear_zeros(std::string& str){
 
 special_t do_action(special_t first, special_t second, char action) {
     Min_Max min_max = first.size < second.size ? Min_Max<special_t>{first, second} : Min_Max<special_t>{second, first};
-    special_t result(min_max.max.size + 1, false), spec1(min_max.max.size + 1, false), spec2(min_max.max.size + 1, false);
+    special_t result(min_max.max.size + 1, false), spec1(min_max.max.size, false), spec2(min_max.max.size, false);
     spec1.setspec(first); spec2.setspec(second);
 
     switch (action)
     {
     case '-':
     {
+        spec1.resize(min_max.max.size + 1);
+        spec2.resize(min_max.max.size + 1);
         spec2.negate();
         spec2.resize(min_max.max.size + 1);
     }
         // fall through <----------!
     case '+':
     {
+        spec1.resize(min_max.max.size + 1);
+        spec2.resize(min_max.max.size + 1);
         unsigned short tmp = 0;
         byte rem = 0;
 
@@ -167,14 +171,29 @@ special_t do_action(special_t first, special_t second, char action) {
         break;
     case '*':
     {
-        special_t A(min_max.max.size * 2 + 1, false);
-        special_t S(min_max.max.size * 2 + 1, false);
-        special_t P(min_max.max.size * 2 + 1, false);
+        special_t A(min_max.max.size, false);
+        special_t S(min_max.max.size, false);
+        special_t P(min_max.max.size, false);
         A.setspec(spec1).add_bytes(RIGHT, min_max.max.size + 1);
         S.setspec(spec1.negate()).add_bytes(RIGHT, min_max.max.size + 1);
         P.setspec(spec2).add_bytes(LEFT, min_max.max.size).add_bytes(RIGHT, 1);
 
-        // in progress...
+        for (int i = 0; i < min_max.max.size * BBITS; i++) {
+            if (!((P.bytes_array[1] & 1) ^ (P.bytes_array[0] & 128))) {
+                P >>= 1;
+            }
+            else if ((P.bytes_array[1] & 1) && !(P.bytes_array[0] & 128)) {
+                P += S;
+                P >>= 1;
+            }
+            else {
+                P += A;
+                P >>= 1;
+            }
+        }
+        result.setspec(P);
+        result >>= 8;
+        result.resize(min_max.max.size + 1);
 
     }
         break;
@@ -186,17 +205,16 @@ special_t do_action(special_t first, special_t second, char action) {
     return result; 
 }
 
+//--------------------------------------------------------------------------------------------------------
+
 special_t operator+ (special_t first, special_t second) { 
     return do_action(first, second, '+');
 }
 special_t operator- (special_t first, special_t second) { 
     return do_action(first, second, '-');
 }
-special_t& operator+= (special_t& first, special_t second) {
-    return first.setspec(do_action(first, second, '+'));
-}
-special_t& operator-= (special_t& first, special_t second) {
-    return first.setspec(do_action(first, second, '-'));
+special_t operator* (special_t first, special_t second) {
+    return do_action(first, second, '*');
 }
 special_t operator<< (special_t spec, int count) {
     special_t tmp;
@@ -207,6 +225,16 @@ special_t operator>> (special_t spec, int count) {
     special_t tmp;
     tmp.setspec(spec);
     return tmp.shift(RIGHT, count);
+}
+
+special_t& operator+= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '+'));
+}
+special_t& operator-= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '-'));
+}
+special_t& operator*= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '*'));
 }
 special_t& operator<<= (special_t& spec, int count) {
     return spec.shift(LEFT, count);
