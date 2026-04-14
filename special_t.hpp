@@ -41,7 +41,7 @@ public:
     
     ~special_t() 
     {
-        if (bytes_array) delete[] bytes_array;
+        delete[] bytes_array;
     }
 
     void clear(){
@@ -69,6 +69,8 @@ public:
     special_t& negate();
     special_t& add_bytes(byte dir, int count);
     special_t& shift(byte dir, int count);
+
+    special_t& operator= (special_t second);
     
 
 //private:
@@ -91,3 +93,9 @@ special_t& operator-= (special_t& first, special_t second);
 special_t& operator*= (special_t& first, special_t second);
 special_t& operator<<= (special_t& spec, int count);
 special_t& operator>>= (special_t& spec, int count);
+
+bool operator== (special_t first, special_t second);
+bool operator<= (special_t first, special_t second);
+bool operator>= (special_t first, special_t second);
+bool operator< (special_t first, special_t second);
+bool operator> (special_t first, special_t second);

@@ -26,11 +26,14 @@ special_t& special_t::setspec(special_t spec) {
 
 special_t& special_t::resize(int new_size){
     byte* new_bytes_array = new byte[new_size];
-    for (int i = 0; i < new_size; i++) {
+    int min_size = std::min(new_size, size);
+    clear_buffer(new_bytes_array, new_size);
+    for (int i = 0; i < min_size; i++) {
         new_bytes_array[i] = bytes_array[i];
     }
     delete[] bytes_array;
     bytes_array = new_bytes_array;
+    size = new_size;
     return *this;
 }
 
@@ -128,6 +131,10 @@ special_t& special_t::shift(byte dir, int count) {
     return *this;
 }
 
+special_t& special_t::operator= (special_t second) {
+    return this->setspec(second);
+}
+
 //--------------------------------------------------------------------------------------------------------
 
 void clear_zeros(std::string& str){
@@ -179,7 +186,8 @@ special_t do_action(special_t first, special_t second, char action) {
         P.setspec(spec2).add_bytes(LEFT, min_max.max.size).add_bytes(RIGHT, 1);
 
         for (int i = 0; i < min_max.max.size * BBITS; i++) {
-            if (!((P.bytes_array[1] & 1) ^ (P.bytes_array[0] & 128))) {
+            if (!(P.bytes_array[1] & 1) && (P.bytes_array[0] & 128)) {
+                P += A;
                 P >>= 1;
             }
             else if ((P.bytes_array[1] & 1) && !(P.bytes_array[0] & 128)) {
@@ -187,7 +195,6 @@ special_t do_action(special_t first, special_t second, char action) {
                 P >>= 1;
             }
             else {
-                P += A;
                 P >>= 1;
             }
         }
@@ -242,5 +249,21 @@ special_t& operator<<= (special_t& spec, int count) {
 special_t& operator>>= (special_t& spec, int count) {
     return spec.shift(RIGHT, count);
 }
+
+bool operator== (special_t first, special_t second) {
+    Min_Max min_max = first.size < second.size ? Min_Max<special_t>{first, second} : Min_Max<special_t>{second, first};
+    min_max.min.resize(min_max.max.size);
+
+    for (int i = 0; i < min_max.max.size; i++) {
+        if (min_max.min.bytes_array[i] != min_max.max.bytes_array[i])
+            return false;
+    }
+    return true;
+    
+}
+// bool operator<= (special_t first, special_t second);
+// bool operator>= (special_t first, special_t second);
+// bool operator< (special_t first, special_t second);
+// bool operator> (special_t first, special_t second);
 
 
