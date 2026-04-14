@@ -50,7 +50,7 @@ public:
         }
     }
     std::string bin(bool sep = true);
-    //std::string dec(bool sep = true);
+    std::string dec();
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     special_t& setval(T val) {
         clear();
@@ -72,6 +72,10 @@ public:
 
     special_t& operator= (special_t second);
     
+    friend std::ostream& operator<< (std::ostream& console_out, special_t& spec) {
+        console_out << spec.dec();
+        return console_out;
+    }
 
 //private:
     byte* bytes_array;

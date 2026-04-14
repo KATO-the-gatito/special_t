@@ -10,8 +10,33 @@ std::string special_t::bin(bool sep){
         }
     }
     std::reverse(str.begin(), str.end());
-    str.pop_back();
+    if (sep) str.pop_back();
     return str;
+}
+std::string special_t::dec() {
+    std::string result = "0";
+    
+    for (char bit : bin(false)) {
+        int carry = 0;
+        for (int i = result.size() - 1; i >= 0; --i) {
+            int digit = (result[i] - '0') * 2 + carry;
+            result[i] = (digit % 10) + '0';
+            carry = digit / 10;
+        }
+        if (carry) result.insert(result.begin(), carry + '0');
+        
+        if (bit == '1') {
+            int i = result.size() - 1;
+            while (i >= 0 && result[i] == '9') {
+                result[i] = '0';
+                i--;
+            }
+            if (i >= 0) result[i]++;
+            else result.insert(result.begin(), '1');
+        }
+    }
+    
+    return result;
 }
 
 special_t& special_t::setspec(special_t spec) {
