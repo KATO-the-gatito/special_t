@@ -192,5 +192,27 @@ special_t operator+ (special_t first, special_t second) {
 special_t operator- (special_t first, special_t second) { 
     return do_action(first, second, '-');
 }
+special_t& operator+= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '+'));
+}
+special_t& operator-= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '-'));
+}
+special_t operator<< (special_t spec, int count) {
+    special_t tmp;
+    tmp.setspec(spec);
+    return tmp.shift(LEFT, count);
+}
+special_t operator>> (special_t spec, int count) {
+    special_t tmp;
+    tmp.setspec(spec);
+    return tmp.shift(RIGHT, count);
+}
+special_t& operator<<= (special_t& spec, int count) {
+    return spec.shift(LEFT, count);
+}
+special_t& operator>>= (special_t& spec, int count) {
+    return spec.shift(RIGHT, count);
+}
 
 
