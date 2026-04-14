@@ -29,6 +29,7 @@ special_t& special_t::resize(int new_size){
     for (int i = 0; i < new_size; i++) {
         new_bytes_array[i] = bytes_array[i];
     }
+    delete[] bytes_array;
     bytes_array = new_bytes_array;
     return *this;
 }
@@ -63,20 +64,67 @@ special_t& special_t::add_bytes(byte dir, int count) {
         glob_i = count;
         break;
     default:
-        perror("wrong direction for adding bytes!");
+        perror("wrong direction for adding bytes!\n");
         break;
     }
     
     for (int i = 0; i < size; i++, glob_i++) {
         tmp_bytes_array[glob_i] = bytes_array[i];
     }
+    delete[] bytes_array;
     bytes_array = tmp_bytes_array;
     size = new_size;
     return *this;
 }
 
 special_t& special_t::shift(byte dir, int count) {
-    // in progress...
+    bool is_needtobreak = false;
+    while (true){
+        int shift_cnt = 0;
+        if (count >= 0 && count <= 8){
+            shift_cnt = count;
+            is_needtobreak = true;
+        }
+        else if (count < 0)
+            break;
+        else {
+            shift_cnt = 8;
+            count -= 8;
+        }
+        
+        switch (dir)
+        {
+        case LEFT:
+        {
+            short tmp = 0;
+            byte old_tmp = 0;
+            for (int i = 0; i < size; i++) {
+                tmp = bytes_array[i] << shift_cnt;
+                bytes_array[i] = (byte)tmp;
+                bytes_array[i] += old_tmp;
+                old_tmp = (byte)(tmp >> 8);
+            }
+        }
+            break;
+        case RIGHT:
+        {
+            short tmp = 0;
+            byte old_tmp = 0;
+            for (int i = size - 1; i >= 0; i--) {
+                tmp = bytes_array[i] << 8 >> shift_cnt;
+                bytes_array[i] = (byte)(tmp >> 8);
+                bytes_array[i] += old_tmp;
+                old_tmp = (byte)tmp;
+            }
+        }
+            break;
+        default:
+            perror("wrong direction for shifting!\n");
+            break;
+        }
+
+        if (is_needtobreak) break;
+    }
     return *this;
 }
 
@@ -131,7 +179,7 @@ special_t do_action(special_t first, special_t second, char action) {
     }
         break;
     default:
-        perror("wrong action!");
+        perror("wrong action!\n");
         break;
     }
 
