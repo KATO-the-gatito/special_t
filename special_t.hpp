@@ -85,7 +85,6 @@ public:
 
 void clear_zeros(std::string& str);
 special_t do_action(special_t first, special_t second, char action);
-special_t bitwise_action(special_t first, special_t second, char action);
 
 special_t operator+ (special_t first, special_t second);
 special_t operator- (special_t first, special_t second);
