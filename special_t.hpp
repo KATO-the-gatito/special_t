@@ -71,6 +71,11 @@ public:
     special_t& shift(byte dir, int count);
 
     special_t& operator= (special_t spec);
+    template<typename T>
+    special_t& operator= (T val) {
+        this->setval(val);
+        return *this;
+    }
     
     friend std::ostream& operator<< (std::ostream& console_out, special_t& spec) {
         console_out << spec.dec();

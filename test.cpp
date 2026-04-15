@@ -4,7 +4,7 @@
 int main() {
     char n = 22, m = 55;
     special_t num1(1, false), num2(1, false), res(1, false);
-    num1.setval(n); num2.setval(m);
+    num1 = n; num2 = m;
     
     std::cout << "num1: " << num1 << "\n";
     std::cout << "num2: " << num2 << "\n";
