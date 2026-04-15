@@ -156,8 +156,8 @@ special_t& special_t::shift(byte dir, int count) {
     return *this;
 }
 
-special_t& special_t::operator= (special_t second) {
-    return this->setspec(second);
+special_t& special_t::operator= (special_t spec) {
+    return this->setspec(spec);
 }
 
 //--------------------------------------------------------------------------------------------------------
@@ -286,9 +286,23 @@ bool operator== (special_t first, special_t second) {
     return true;
     
 }
-// bool operator<= (special_t first, special_t second);
-// bool operator>= (special_t first, special_t second);
-// bool operator< (special_t first, special_t second);
-// bool operator> (special_t first, special_t second);
+bool operator<= (special_t first, special_t second) {
+    return first == second || first < second;
+}
+bool operator>= (special_t first, special_t second) {
+    return first == second || first > second;
+}
+bool operator< (special_t first, special_t second) {
+    special_t res = first - second;
+    if (res.bytes_array[res.size - 1] & 128)
+        return true;
+    return false;
+}
+bool operator> (special_t first, special_t second) {
+    special_t res = first - second;
+    if (res.bytes_array[res.size - 1] & 128)
+        return false;
+    return true;
+}
 
 
