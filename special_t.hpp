@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #define BBITS 8
 #define LEFT 0
@@ -37,6 +38,11 @@ public:
             bytes_array[i] = spec.bytes_array[i];
         }
         
+    }
+    template<typename T>
+    special_t(T val) : size(sizeof(T)), bytes_array(new byte[sizeof(T)]), is_signed(std::numeric_limits<T>::is_signed)
+    {
+        this->setval(val);
     }
     
     ~special_t() 
