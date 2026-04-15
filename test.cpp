@@ -11,8 +11,9 @@ int main() {
     std::cout << "num1: " << num1.bin() << "\n";
     std::cout << "num2: " << num2.bin() << "\n";
 
+    res = num1 | num2;
     //res.resize(4);
-    std::cout << "res:  " << (int)(num1 <= num2) << "\n";
+    std::cout << "res:  " << res.bin() << "\n";
     //exit(0);
     return 0;
 }

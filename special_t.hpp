@@ -85,18 +85,26 @@ public:
 
 void clear_zeros(std::string& str);
 special_t do_action(special_t first, special_t second, char action);
+special_t bitwise_action(special_t first, special_t second, char action);
 
 special_t operator+ (special_t first, special_t second);
 special_t operator- (special_t first, special_t second);
 special_t operator* (special_t first, special_t second);
 special_t operator<< (special_t spec, int count);
 special_t operator>> (special_t spec, int count);
+special_t operator& (special_t first, special_t second);
+special_t operator| (special_t first, special_t second);
+special_t operator^ (special_t first, special_t second);
 
 special_t& operator+= (special_t& first, special_t second);
 special_t& operator-= (special_t& first, special_t second);
 special_t& operator*= (special_t& first, special_t second);
 special_t& operator<<= (special_t& spec, int count);
 special_t& operator>>= (special_t& spec, int count);
+special_t& operator~ (special_t& spec);
+special_t& operator&= (special_t& first, special_t second);
+special_t& operator|= (special_t& first, special_t second);
+special_t& operator^= (special_t& first, special_t second);
 
 bool operator== (special_t first, special_t second);
 bool operator<= (special_t first, special_t second);

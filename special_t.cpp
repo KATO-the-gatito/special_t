@@ -228,6 +228,25 @@ special_t do_action(special_t first, special_t second, char action) {
         result.resize(min_max.max.size + 1);
 
     }
+    case '&':
+    case '|':
+    case '^':
+        for (int i = 0; i < min_max.max.size; i++) {
+            switch (action)
+            {
+            case '&':
+                result.bytes_array[i] = spec1.bytes_array[i] & spec2.bytes_array[i];   
+                break;
+            case '|':
+                result.bytes_array[i] = spec1.bytes_array[i] | spec2.bytes_array[i];   
+                break;
+            case '^':
+                result.bytes_array[i] = spec1.bytes_array[i] ^ spec2.bytes_array[i];   
+                break;
+            default:
+                break;
+            }
+        }
         break;
     default:
         perror("wrong action!\n");
@@ -258,6 +277,15 @@ special_t operator>> (special_t spec, int count) {
     tmp.setspec(spec);
     return tmp.shift(RIGHT, count);
 }
+special_t operator& (special_t first, special_t second) {
+    return do_action(first, second, '&');
+}
+special_t operator| (special_t first, special_t second) {
+    return do_action(first, second, '|');
+}
+special_t operator^ (special_t first, special_t second) {
+    return do_action(first, second, '^');
+}
 
 special_t& operator+= (special_t& first, special_t second) {
     return first.setspec(do_action(first, second, '+'));
@@ -273,6 +301,18 @@ special_t& operator<<= (special_t& spec, int count) {
 }
 special_t& operator>>= (special_t& spec, int count) {
     return spec.shift(RIGHT, count);
+}
+special_t& operator~ (special_t& spec) {
+    return spec.invert();
+}
+special_t& operator&= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '&'));
+}
+special_t& operator|= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '|'));
+}
+special_t& operator^= (special_t& first, special_t second) {
+    return first.setspec(do_action(first, second, '^'));
 }
 
 bool operator== (special_t first, special_t second) {
