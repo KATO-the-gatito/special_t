@@ -156,6 +156,28 @@ special_t& special_t::shift(byte dir, int count) {
     return *this;
 }
 
+bool special_t::get_bit(int index) {
+    std::div_t coord = div(index, BBITS);
+    return (bool)(bytes_array[coord.quot] & (1 << coord.rem));
+}
+
+special_t& special_t::set_bit(int index, bool val) {
+    std::div_t coord = div(index, BBITS);
+    bytes_array[coord.quot] = (bytes_array[coord.quot] & ~(1 << coord.rem)) | (val << coord.rem);
+    return *this;
+}
+
+int special_t::get_valid_size() {
+    int valid_size = 0;
+    for (int i = size - 1; i >= 0; i--) {
+        if (bytes_array[i]){
+            valid_size = i + 1;
+            break;
+        }
+    }
+    return valid_size;
+}
+
 special_t& special_t::operator= (special_t spec) {
     return this->setspec(spec);
 }
@@ -174,27 +196,29 @@ void clear_zeros(std::string& str){
 
 special_t do_action(special_t first, special_t second, char action) {
     Min_Max min_max = first.size < second.size ? Min_Max<special_t>{first, second} : Min_Max<special_t>{second, first};
-    special_t result(min_max.max.size + 1, false), spec1(min_max.max.size, false), spec2(min_max.max.size, false);
+    Min_Max min_max_valid = first.get_valid_size() < second.get_valid_size() ? Min_Max<special_t>{first, second} : Min_Max<special_t>{second, first};
+    special_t result(min_max.max.size + 1, false), spec1(min_max_valid.max.get_valid_size(), false), spec2(min_max_valid.max.get_valid_size(), false);
     spec1.setspec(first); spec2.setspec(second);
+    int common_valid_size = min_max_valid.max.get_valid_size(), common_size = min_max.max.size;
 
     switch (action)
     {
     case '-':
     {
-        spec1.resize(min_max.max.size + 1);
-        spec2.resize(min_max.max.size + 1);
+        spec1.resize(common_valid_size + 1);
+        spec2.resize(common_valid_size + 1);
         spec2.negate();
-        spec2.resize(min_max.max.size + 1);
+        spec2.resize(common_valid_size + 1);
     }
         // fall through <----------!
     case '+':
     {
-        spec1.resize(min_max.max.size + 1);
-        spec2.resize(min_max.max.size + 1);
+        spec1.resize(common_valid_size + 1);
+        spec2.resize(common_valid_size + 1);
         unsigned short tmp = 0;
         byte rem = 0;
 
-        for (int i = 0; i < min_max.min.size + 1; i++) {
+        for (int i = 0; i < common_valid_size + 1; i++) {
             tmp = (short)(spec1.bytes_array[i]) + (short)(spec2.bytes_array[i]) + (short)(rem);
             result.bytes_array[i] = (byte)tmp;
             rem = (tmp >> 8);
@@ -203,20 +227,18 @@ special_t do_action(special_t first, special_t second, char action) {
         break;
     case '*':
     {
-        special_t A(min_max.max.size, false);
-        special_t S(min_max.max.size, false);
-        special_t P(min_max.max.size, false);
-        A.setspec(spec1).add_bytes(RIGHT, min_max.max.size + 1);
-        S.setspec(spec1.negate()).add_bytes(RIGHT, min_max.max.size + 1);
-        P.setspec(spec2).add_bytes(LEFT, min_max.max.size).add_bytes(RIGHT, 1);
+        special_t A(common_valid_size, false);
+        special_t P(common_size, false);
+        A.setspec(spec1).add_bytes(RIGHT, common_valid_size + 1);
+        P.setspec(spec2).add_bytes(LEFT, common_valid_size).add_bytes(RIGHT, 1);
 
-        for (int i = 0; i < min_max.max.size * BBITS; i++) {
+        for (int i = 0; i < common_valid_size * BBITS; i++) {
             if (!(P.bytes_array[1] & 1) && (P.bytes_array[0] & 128)) {
                 P += A;
                 P >>= 1;
             }
             else if ((P.bytes_array[1] & 1) && !(P.bytes_array[0] & 128)) {
-                P += S;
+                P -= A;
                 P >>= 1;
             }
             else {
@@ -225,13 +247,54 @@ special_t do_action(special_t first, special_t second, char action) {
         }
         result.setspec(P);
         result >>= 8;
-        result.resize(min_max.max.size + 1);
+        result.resize(common_valid_size + 1);
 
     }
+        break;
+    case '%':
+    case '/':
+    {
+        special_t Q(common_valid_size, false), R(common_valid_size, false);
+        for (int i = Q.size * BBITS - 1; i >= 0; i--) {
+            R <<= 1;
+            R.set_bit(0, spec1.get_bit(i));
+            if (R >= spec2) {
+                R -= spec2;
+                Q.set_bit(i, 1);
+            }
+        }
+        switch (action)
+        {
+        case '%':
+            result = R;
+            break;
+        case '/':
+            result = Q;
+            break;
+        }
+    }
+        break;
+    case '"':
+    {
+        special_t A(common_size, false), B(common_size, false);
+        result = 1;
+        while (spec2 != (special_t)0) {
+            if (!(spec2.bytes_array[0] & 1)){
+                spec2 >>= 1;
+                spec1 *= spec1;
+            }
+            else {
+                spec2 -= (special_t)1;
+                result *= spec1;
+            }
+        }
+        
+    }
+        break;
     case '&':
     case '|':
     case '^':
-        for (int i = 0; i < min_max.max.size; i++) {
+        for (int i = 0; i < common_valid_size; i++) {
             switch (action)
             {
             case '&':
@@ -266,6 +329,12 @@ special_t operator- (special_t first, special_t second) {
 }
 special_t operator* (special_t first, special_t second) {
     return do_action(first, second, '*');
+}
+special_t operator/ (special_t first, special_t second) {
+    return do_action(first, second, '/');
+}
+special_t operator% (special_t first, special_t second) {
+    return do_action(first, second, '%');
 }
 special_t operator<< (special_t spec, int count) {
     special_t tmp;
@@ -325,6 +394,9 @@ bool operator== (special_t first, special_t second) {
     }
     return true;
     
+}
+bool operator!= (special_t first, special_t second) {
+    return !(first == second);
 }
 bool operator<= (special_t first, special_t second) {
     return first == second || first < second;

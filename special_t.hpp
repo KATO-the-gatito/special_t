@@ -17,7 +17,22 @@ struct Min_Max
 {
     T min, max;
 };
+template<typename T>
+union splitted_num {
+    T num;
+    byte part[sizeof(T)];
+};
 
+template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+int find_valid_size(T num) {
+    splitted_num<T> n;
+    n.num = num;
+    for (int i = sizeof(T) - 1; i >= 0; i--) {
+        if (n.part[i])
+            return i + 1;
+    }
+    return 0;
+}
 template<typename T>
 void clear_buffer(T* buffer, int len){
     for (int i = 0; i < len; i++){
@@ -42,7 +57,7 @@ public:
     template<typename T>
     special_t(T val) : size(sizeof(T)), bytes_array(new byte[sizeof(T)]), is_signed(std::numeric_limits<T>::is_signed)
     {
-        this->setval(val);
+        this->setval(val); //valid_size init in this func
     }
     
     ~special_t() 
@@ -75,6 +90,9 @@ public:
     special_t& negate();
     special_t& add_bytes(byte dir, int count);
     special_t& shift(byte dir, int count);
+    bool get_bit(int index);
+    special_t& set_bit(int index, bool val);
+    int get_valid_size();
 
     special_t& operator= (special_t spec);
     template<typename T>
@@ -100,6 +118,8 @@ special_t do_action(special_t first, special_t second, char action);
 special_t operator+ (special_t first, special_t second);
 special_t operator- (special_t first, special_t second);
 special_t operator* (special_t first, special_t second);
+special_t operator/ (special_t first, special_t second);
+special_t operator% (special_t first, special_t second);
 special_t operator<< (special_t spec, int count);
 special_t operator>> (special_t spec, int count);
 special_t operator& (special_t first, special_t second);
@@ -117,6 +137,7 @@ special_t& operator|= (special_t& first, special_t second);
 special_t& operator^= (special_t& first, special_t second);
 
 bool operator== (special_t first, special_t second);
+bool operator!= (special_t first, special_t second);
 bool operator<= (special_t first, special_t second);
 bool operator>= (special_t first, special_t second);
 bool operator< (special_t first, special_t second);
