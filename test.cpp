@@ -13,9 +13,3 @@ int main() {
     
     return 0;
 }
-/*
-
-todo:
-1) init size and bytes_array using struct in constructor;
-
-*/
