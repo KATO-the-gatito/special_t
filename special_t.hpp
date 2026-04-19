@@ -43,11 +43,11 @@ void clear_buffer(T* buffer, int len){
 class special_t
 {  
 public:
-    special_t() : size(4), is_signed(false), bytes_array(new byte[4])
+    special_t() : size(4), is_signed(true), sign(false), bytes_array(new byte[4])
     { clear(); }
-    special_t(int size, bool is_signed) : size(size), is_signed(is_signed), bytes_array(new byte[size])
+    special_t(int size, bool is_signed) : size(size), is_signed(is_signed), sign(false), bytes_array(new byte[size])
     { clear(); }
-    special_t(const special_t& spec) : size(spec.size), bytes_array(new byte[spec.size]), is_signed(spec.is_signed)
+    special_t(const special_t& spec) : size(spec.size), is_signed(spec.is_signed), sign(spec.is_signed ? spec.sign : false), bytes_array(new byte[spec.size])
     {
         for (int i = 0; i < size; i++) {
             bytes_array[i] = spec.bytes_array[i];
@@ -55,9 +55,9 @@ public:
         
     }
     template<typename T>
-    special_t(T val) : size(sizeof(T)), bytes_array(new byte[sizeof(T)]), is_signed(std::numeric_limits<T>::is_signed)
+    special_t(T val) : size(sizeof(T)), is_signed(std::numeric_limits<T>::is_signed), bytes_array(new byte[sizeof(T)])
     {
-        this->setval(val); //valid_size init in this func
+        this->setval(val); // sign init there
     }
     
     ~special_t() 
@@ -74,6 +74,7 @@ public:
     std::string dec();
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     special_t& setval(T val) {
+        sign = val < 0;
         clear();
         int val_j = 0;
         for (int i = 0; i < sizeof(T); i++) {
@@ -110,10 +111,12 @@ public:
     byte* bytes_array;
     int size;
     bool is_signed;
+    bool sign; // '-' - true, '+' - false 
 };
 
 void clear_zeros(std::string& str);
 special_t do_action(special_t first, special_t second, char action);
+special_t power(special_t spec, long long exp, int res_size = 0);
 
 special_t operator+ (special_t first, special_t second);
 special_t operator- (special_t first, special_t second);
